@@ -1,0 +1,11 @@
+*same_commands.txt* Launch a terminal command or switch to the buffer.
+
+Version: 0.1
+Author: Yuji Yamamoto <whosekiteneverfly@gmail.com>
+License: Apache license
+
+==============================================================================
+
+FUNCTIONS                                          *same_commands-functions*
+
+
