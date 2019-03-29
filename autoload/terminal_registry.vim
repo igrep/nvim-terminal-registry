@@ -51,6 +51,13 @@ function! s:inspect(arg) abort
   return arg
 endfunction
 
+function! terminal_registry#start(cmd, ...) abort
+  let opts = get(a:, 1, {})
+  let tag = get(opts, "tag", "")
+  let term_opts = get(opts, "terminal_options", {})
+  call s:get_or_register(a:cmd, tag, term_opts)
+endfunction
+
 function! terminal_registry#open_or_switch(cmd, ...) abort
   let opts = get(a:, 1, {})
   let tag = get(opts, "tag", "")
