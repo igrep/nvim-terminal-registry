@@ -79,7 +79,7 @@ else
 end
 
 function! terminal_registry#send(cmd, keys, ...) abort
-  let opts = get(a:, 2, {})
+  let opts = get(a:, 1, {})
   let tag = get(opts, "tag", "")
   let term_opts = get(opts, "terminal_options", {})
 
