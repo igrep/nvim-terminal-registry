@@ -22,28 +22,19 @@ else
   finish
 end
 
-function! s:open_to_register(cmd, tag, term_opts) abort
+function! s:open_to_register(cmd, id, term_opts) abort
   let ref_to_term = s:term_open(a:cmd, a:term_opts)
-  execute 'autocmd BufDelete <buffer=' . ref_to_term.bufnr . '> call terminal_registry#unregister(' . string(a:cmd) . ', { "tag": ' . string(a:tag) . '})'
+  execute 'autocmd BufDelete <buffer=' . ref_to_term.bufnr . '> call terminal_registry#unregister(' . string(a:cmd) . ', { "id": ' . string(a:id) . '})'
   return ref_to_term
 endfunction
 
-function! s:get_or_register(cmd, tag, term_opts) abort
-  if has_key(s:registry, a:cmd)
-    let cmd_ref_by_tag = s:registry[a:cmd]
-    if has_key(cmd_ref_by_tag, a:tag)
-      return cmd_ref_by_tag[a:tag]
-    endif
-
-    let ref_to_term = s:open_to_register(a:cmd, a:tag, a:term_opts)
-    let cmd_ref_by_tag[a:tag] = ref_to_term
-    return ref_to_term
+function! s:get_or_register(cmd, id, term_opts) abort
+  if has_key(s:registry, a:id)
+    return s:registry[a:id]
   endif
 
-  let cmd_ref_by_tag = {}
-  let cmd_ref_by_tag[a:tag] = s:open_to_register(a:cmd, a:tag, a:term_opts)
-  let s:registry[a:cmd] = cmd_ref_by_tag
-  return cmd_ref_by_tag[a:tag]
+  let s:registry[a:id] = s:open_to_register(a:cmd, a:id, a:term_opts)
+  return s:registry[a:id]
 endfunction
 
 function! s:inspect(arg) abort
@@ -53,16 +44,16 @@ endfunction
 
 function! terminal_registry#start(cmd, ...) abort
   let opts = get(a:, 1, {})
-  let tag = get(opts, "tag", "")
+  let id = get(opts, "id", a:cmd)
   let term_opts = get(opts, "terminal_options", {})
-  call s:get_or_register(a:cmd, tag, term_opts)
+  call s:get_or_register(a:cmd, id, term_opts)
 endfunction
 
 function! terminal_registry#open_or_switch(cmd, ...) abort
   let opts = get(a:, 1, {})
-  let tag = get(opts, "tag", "")
+  let id = get(opts, "id", a:cmd)
   let term_opts = get(opts, "terminal_options", {})
-  execute 'buffer ' . s:get_or_register(a:cmd, tag, term_opts).bufnr
+  execute 'buffer ' . s:get_or_register(a:cmd, id, term_opts).bufnr
 endfunction
 
 if exists('*term_sendkeys')
@@ -80,16 +71,18 @@ end
 
 function! terminal_registry#send(cmd, keys, ...) abort
   let opts = get(a:, 1, {})
-  let tag = get(opts, "tag", "")
+  let id = get(opts, "id", a:cmd)
   let term_opts = get(opts, "terminal_options", {})
 
-  call s:send_to(s:get_or_register(a:cmd, tag, term_opts), a:keys)
+  call s:send_to(s:get_or_register(a:cmd, id, term_opts), a:keys)
 endfunction
 
 function! terminal_registry#unregister(cmd, ...) abort
   let opts = get(a:, 1, {})
-  let tag = get(opts, "tag", "")
-  call remove(s:registry[a:cmd], tag)
+  let id = get(opts, "id", a:cmd)
+  if has_key(s:registry, id)
+    call remove(s:registry, id)
+  endif
 endfunction
 
 function! terminal_registry#dump() abort
