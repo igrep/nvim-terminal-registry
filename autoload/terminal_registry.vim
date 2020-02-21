@@ -24,36 +24,31 @@ end
 
 function! s:open_to_register(cmd, id, term_opts) abort
   let ref_to_term = s:term_open(a:cmd, a:term_opts)
-  execute 'autocmd BufDelete <buffer=' . ref_to_term.bufnr . '> call terminal_registry#unregister(' . string(a:cmd) . ', { "id": ' . string(a:id) . '})'
+  execute 'autocmd BufDelete <buffer=' . ref_to_term.bufnr . '> call terminal_registry#unregister(' . string(a:id) . ')'
   return ref_to_term
-endfunction
-
-function! s:get_or_register(cmd, id, term_opts) abort
-  if has_key(s:registry, a:id)
-    return s:registry[a:id]
-  endif
-
-  let s:registry[a:id] = s:open_to_register(a:cmd, a:id, a:term_opts)
-  return s:registry[a:id]
-endfunction
-
-function! s:inspect(arg) abort
-  echomsg string(arg)
-  return arg
 endfunction
 
 function! terminal_registry#start(cmd, ...) abort
   let opts = get(a:, 1, {})
   let id = get(opts, "id", a:cmd)
+  let kill = get(opts, "kill", 0)
   let term_opts = get(opts, "terminal_options", {})
-  call s:get_or_register(a:cmd, id, term_opts)
+
+  if has_key(s:registry, id)
+    if kill
+      execute 'bdelete! ' . s:registry[id].bufnr
+    else
+      let s:registry[id] = s:open_to_register(a:cmd, id, term_opts)
+      return s:registry[id]
+    endif
+  endif
+
+  let s:registry[id] = s:open_to_register(a:cmd, id, term_opts)
+  return s:registry[id]
 endfunction
 
-function! terminal_registry#open_or_switch(cmd, ...) abort
-  let opts = get(a:, 1, {})
-  let id = get(opts, "id", a:cmd)
-  let term_opts = get(opts, "terminal_options", {})
-  execute 'buffer ' . s:get_or_register(a:cmd, id, term_opts).bufnr
+function! terminal_registry#switch(id) abort
+  execute 'buffer ' . s:registry[a:id].bufnr
 endfunction
 
 if exists('*term_sendkeys')
@@ -69,19 +64,13 @@ else
   finish
 end
 
-function! terminal_registry#send(cmd, keys, ...) abort
-  let opts = get(a:, 1, {})
-  let id = get(opts, "id", a:cmd)
-  let term_opts = get(opts, "terminal_options", {})
-
-  call s:send_to(s:get_or_register(a:cmd, id, term_opts), a:keys)
+function! terminal_registry#send(id, keys) abort
+  call s:send_to(s:registry[a:id], a:keys)
 endfunction
 
-function! terminal_registry#unregister(cmd, ...) abort
-  let opts = get(a:, 1, {})
-  let id = get(opts, "id", a:cmd)
-  if has_key(s:registry, id)
-    call remove(s:registry, id)
+function! terminal_registry#unregister(id) abort
+  if has_key(s:registry, a:id)
+    call remove(s:registry, a:id)
   endif
 endfunction
 
