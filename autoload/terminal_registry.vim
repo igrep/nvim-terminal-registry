@@ -68,6 +68,10 @@ function! terminal_registry#send(id, keys) abort
   call s:send_to(s:registry[a:id], a:keys)
 endfunction
 
+function! terminal_registry#has_started(id) abort
+  return has_key(s:registry, a:id)
+endfunction
+
 function! terminal_registry#unregister(id) abort
   if has_key(s:registry, a:id)
     call remove(s:registry, a:id)
