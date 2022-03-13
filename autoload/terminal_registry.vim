@@ -31,7 +31,7 @@ endfunction
 function! terminal_registry#start(cmd, ...) abort
   let opts = get(a:, 1, {})
   let id = get(opts, "id", a:cmd)
-  let kill = get(opts, "kill", 0)
+  let kill = get(opts, "kill", 1)
   let term_opts = get(opts, "terminal_options", {})
 
   if has_key(s:registry, id)
