@@ -47,6 +47,10 @@ function! terminal_registry#start(cmd, ...) abort
   return s:registry[id]
 endfunction
 
+function! terminal_registry#get_buf(id) abort
+  return s:registry[a:id].bufnr
+endfunction
+
 function! terminal_registry#switch(id) abort
   execute 'buffer ' . s:registry[a:id].bufnr
 endfunction
