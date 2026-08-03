@@ -72,6 +72,10 @@ function! terminal_registry#send(id, keys) abort
   call s:send_to(s:registry[a:id], a:keys)
 endfunction
 
+function! terminal_registry#sendl(id, keys) abort
+  call s:send_to(s:registry[a:id], a:keys . "\n")
+endfunction
+
 function! terminal_registry#has_started(id) abort
   return has_key(s:registry, a:id)
 endfunction
@@ -80,6 +84,20 @@ function! terminal_registry#unregister(id) abort
   if has_key(s:registry, a:id)
     call remove(s:registry, a:id)
   endif
+endfunction
+
+function! terminal_registry#get_recent_output_lines(id, n) abort
+  let bufnr = s:registry[a:id].bufnr
+  let bufinfo = getbufinfo(bufnr)[0]
+  let endN = bufinfo.linecount
+  while endN > 0 && getbufoneline(bufnr, endN) == ''
+    let endN -= 1
+  endwhile
+  return join(getbufline(bufnr, max([1, endN - a:n + 1]), endN), "\n")
+endfunction
+
+function! terminal_registry#list() abort
+  return keys(s:registry)
 endfunction
 
 function! terminal_registry#dump() abort
