@@ -20,7 +20,6 @@ CONTENTS                                          *terminal_registry-contents*
    2.8 terminal_registry#list() ........... |terminal_registry#list()|
    2.9 terminal_registry#dump() ........... |terminal_registry#dump()|
    2.10 terminal_registry#unregister() .... |terminal_registry#unregister()|
-3. Usage Examples ......................... |terminal_registry-examples|
 
 ==============================================================================
 1. Introduction                              *terminal_registry-introduction*
