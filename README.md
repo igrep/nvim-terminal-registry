@@ -13,4 +13,4 @@ Plug 'igrep/nvim-terminal-registry'
 
 ## Usage
 
-See [doc/terminal-registry.txt](./doc/terminal-registry.txt) for details.
+See [doc/terminal_registry.txt](./doc/terminal_registry.txt) for details.
