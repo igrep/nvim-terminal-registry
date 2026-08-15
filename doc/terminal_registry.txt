@@ -1,6 +1,6 @@
 *terminal_registry.txt* Launch a terminal command or switch to the buffer.
 
-Version: 0.1
+Version: 0.2
 Author: YAMAMOTO Yuji <igrep@n.email.ne.jp>
 License: Apache license
 
@@ -8,18 +8,22 @@ License: Apache license
 CONTENTS                                          *terminal_registry-contents*
 
 1. Introduction ........................... |terminal_registry-introduction|
-2. Functions .............................. |terminal_registry-functions|
-   2.1 terminal_registry#start() .......... |terminal_registry#start()|
-   2.2 terminal_registry#switch() ......... |terminal_registry#switch()|
-   2.3 terminal_registry#send() ........... |terminal_registry#send()|
-   2.4 terminal_registry#sendl() .......... |terminal_registry#sendl()|
-   2.5 terminal_registry#has_started() .... |terminal_registry#has_started()|
-   2.6 terminal_registry#get_buf() ........ |terminal_registry#get_buf()|
-   2.7 terminal_registry#get_recent_output_lines()
-                                    |terminal_registry#get_recent_output_lines()|
-   2.8 terminal_registry#list() ........... |terminal_registry#list()|
-   2.9 terminal_registry#dump() ........... |terminal_registry#dump()|
-   2.10 terminal_registry#unregister() .... |terminal_registry#unregister()|
+2. Lua API ................................ |terminal_registry-lua|
+   2.1 require('terminal_registry').start()
+                                         |terminal_registry.start()|
+   2.2 require('terminal_registry').switch()
+                                         |terminal_registry.switch()|
+   2.3 require('terminal_registry').send() |terminal_registry.send()|
+   2.4 require('terminal_registry').sendl() |terminal_registry.sendl()|
+   2.5 require('terminal_registry').has_started()
+                                         |terminal_registry.has_started()|
+   2.6 require('terminal_registry').get_buf() |terminal_registry.get_buf()|
+   2.7 require('terminal_registry').get_recent_output_lines()
+                                  |terminal_registry.get_recent_output_lines()|
+   2.8 require('terminal_registry').list() |terminal_registry.list()|
+   2.9 require('terminal_registry').dump() |terminal_registry.dump()|
+   2.10 require('terminal_registry').unregister()
+                                         |terminal_registry.unregister()|
 
 ==============================================================================
 1. Introduction                              *terminal_registry-introduction*
@@ -27,6 +31,9 @@ CONTENTS                                          *terminal_registry-contents*
 The terminal_registry plugin provides a way to manage multiple terminal
 buffers in Neovim. It provides a function to start terminals with specific
 IDs and utility functions to manipulate them.
+
+This plugin is implemented in Lua and provides both a Lua API and Vimscript
+compatibility layer.
 
 Features:
 
@@ -36,166 +43,207 @@ Features:
 - Query terminal status and output
 
 ==============================================================================
-2. Functions                                    *terminal_registry-functions*
+2. Lua API                                            *terminal_registry-lua*
+
+This is the primary API for using terminal_registry. All functions are
+accessed through the module returned by require('terminal_registry').
+
+Example:~
+>lua
+  local tr = require('terminal_registry')
+  tr.start('bash')
+<
 
 ------------------------------------------------------------------------------
-2.1 terminal_registry#start({cmd} [, {opts}])    *terminal_registry#start()*
+2.1 require('terminal_registry').start({cmd} [, {opts}])
+                                                   *terminal_registry.start()*
 
 Start a terminal with the given command and register it in the registry.
 
 Parameters:~
-  {cmd}   String. The command to execute in the terminal.
-  {opts}  Dictionary (optional). Configuration options:
-          - id: String. Unique identifier for this terminal.
+  {cmd}   (string) The command to execute in the terminal.
+  {opts}  (table, optional) Configuration options:
+          • id: (string) Unique identifier for this terminal.
                 Default: {cmd}
-          - kill: Boolean. If 1 and a terminal with this ID exists,
+          • kill: (boolean) If true and a terminal with this ID exists,
                   kill the old terminal before starting a new one.
-                  Default: 1
-          - terminal_options: Dictionary. Options to pass to |termopen()|.
+                  Default: true
+          • terminal_options: (table) Options to pass to |termopen()|.
                              Default: {}
 
 Returns:~
-  Dictionary with 'jobid' and 'bufnr' keys on success.
-  Nothing if failed (error message will be displayed).
+  (table) Dictionary with 'jobid' and 'bufnr' keys on success.
+  (nil) if failed (error message will be displayed).
 
 Example:~
->
-  " Start a shell with default ID ('bash')
-  call terminal_registry#start('bash')
-
-  " Start a longer command with a custom ID
-  call terminal_registry#start('python manage.py runserver',
-      \ {'id': 'django'}
-      \ )
+>lua
+  local tr = require('terminal_registry')
+  
+  -- Start a shell with default ID ('bash')
+  tr.start('bash')
+  
+  -- Start a longer command with a custom ID
+  tr.start('python manage.py runserver', {
+    id = 'django'
+  })
 <
 
 ------------------------------------------------------------------------------
-2.2 terminal_registry#switch({id})              *terminal_registry#switch()*
+2.2 require('terminal_registry').switch({id})
+                                                  *terminal_registry.switch()*
 
 Switch to the buffer of a registered terminal.
 
 Parameters:~
-  {id}  String. The ID of the registered terminal.
+  {id}  (string) The ID of the registered terminal.
 
 Example:~
->
-  call terminal_registry#switch('django')
+>lua
+  local tr = require('terminal_registry')
+  tr.switch('django')
 <
 
 ------------------------------------------------------------------------------
-2.3 terminal_registry#send({id}, {keys})          *terminal_registry#send()*
+2.3 require('terminal_registry').send({id}, {keys})
+                                                    *terminal_registry.send()*
 
 Send input to a registered terminal without appending a newline.
 
 Parameters:~
-  {id}    String. The ID of the registered terminal.
-  {keys}  String. The text to send to the terminal.
+  {id}    (string) The ID of the registered terminal.
+  {keys}  (string) The text to send to the terminal.
 
 Example:~
->
-  " Execute shell command
-  call terminal_registry#sendl('bash', "ls -la\n")
+>lua
+  local tr = require('terminal_registry')
+  -- Send command with explicit newline
+  tr.send('bash', 'ls -la\n')
 <
 
 ------------------------------------------------------------------------------
-2.4 terminal_registry#sendl({id}, {keys})        *terminal_registry#sendl()*
+2.4 require('terminal_registry').sendl({id}, {keys})
+                                                   *terminal_registry.sendl()*
 
-Like |terminal_registry#send()|, but appends a newline to the input.
+Like |terminal_registry.send()|, but appends a newline to the input.
 
 Parameters:~
-  {id}    String. The ID of the registered terminal.
-  {keys}  String. The text to send to the terminal.
+  {id}    (string) The ID of the registered terminal.
+  {keys}  (string) The text to send to the terminal.
 
 Example:~
->
-  " Execute shell command
-  call terminal_registry#sendl('bash', 'ls -la')
+>lua
+  local tr = require('terminal_registry')
+  -- Execute shell command (newline added automatically)
+  tr.sendl('bash', 'ls -la')
 <
 
 ------------------------------------------------------------------------------
-2.5 terminal_registry#has_started({id})    *terminal_registry#has_started()*
+2.5 require('terminal_registry').has_started({id})
+                                             *terminal_registry.has_started()*
 
 Check if a terminal with the given ID has been started.
 
 Parameters:~
-  {id}  String. The ID to check.
+  {id}  (string) The ID to check.
 
 Returns:~
-  1 if a terminal with this ID exists in the registry, 0 otherwise.
+  (boolean) true if a terminal with this ID exists in the registry,
+            false otherwise.
 
 Example:~
->
-  if terminal_registry#has_started('python-repl')
-    call terminal_registry#switch('python-repl')
+>lua
+  local tr = require('terminal_registry')
+  
+  if tr.has_started('python-repl') then
+    tr.switch('python-repl')
   else
-    call terminal_registry#start('python', {'id': 'python-repl'})
-  endif
+    tr.start('python', { id = 'python-repl' })
+  end
 <
 
 ------------------------------------------------------------------------------
-2.6 terminal_registry#get_buf({id})              *terminal_registry#get_buf()*
+2.6 require('terminal_registry').get_buf({id})
+                                                 *terminal_registry.get_buf()*
 
 Get the buffer number of a registered terminal.
 
 Parameters:~
-  {id}  String. The ID of the registered terminal.
+  {id}  (string) The ID of the registered terminal.
 
 Returns:~
-  Integer. The buffer number of the terminal.
+  (number) The buffer number of the terminal.
+
+Example:~
+>lua
+  local tr = require('terminal_registry')
+  local bufnr = tr.get_buf('bash')
+  print('Terminal buffer:', bufnr)
 <
 
 ------------------------------------------------------------------------------
-2.7 terminal_registry#get_recent_output_lines({id}, {n})
-                               *terminal_registry#get_recent_output_lines()*
+2.7 require('terminal_registry').get_recent_output_lines({id}, {n})
+                                  *terminal_registry.get_recent_output_lines()*
 
 Get the last N lines of output from a registered terminal, excluding
 trailing empty lines.
 
 Parameters:~
-  {id}  String. The ID of the registered terminal.
-  {n}   Integer. Number of lines to retrieve.
+  {id}  (string) The ID of the registered terminal.
+  {n}   (number) Number of lines to retrieve.
 
 Returns:~
-  String. The last N lines joined with newlines.
+  (string) The last N lines joined with newlines.
 
 Example:~
->
-  " Get last 100 lines of server logs
-  terminal_registry#get_recent_output_lines('django', 100)
+>lua
+  local tr = require('terminal_registry')
+  -- Get last 100 lines of server logs
+  local output = tr.get_recent_output_lines('django', 100)
+  print(output)
 <
 
 ------------------------------------------------------------------------------
-2.8 terminal_registry#list()                      *terminal_registry#list()*
+2.8 require('terminal_registry').list()          *terminal_registry.list()*
 
 Get a list of all registered terminal IDs.
 
 Returns:~
-  List of strings. All registered terminal IDs.
+  (table) Array of strings containing all registered terminal IDs.
+
+Example:~
+>lua
+  local tr = require('terminal_registry')
+  local terminals = tr.list()
+  for _, id in ipairs(terminals) do
+    print('Terminal:', id)
+  end
 <
 
 ------------------------------------------------------------------------------
-2.9 terminal_registry#dump()                      *terminal_registry#dump()*
+2.9 require('terminal_registry').dump()          *terminal_registry.dump()*
 
 Display the entire registry for debugging purposes.
 
 Example:~
->
-  call terminal_registry#dump()
+>lua
+  local tr = require('terminal_registry')
+  tr.dump()
 <
 
 ------------------------------------------------------------------------------
-2.10 terminal_registry#unregister({id})      *terminal_registry#unregister()*
+2.10 require('terminal_registry').unregister({id})
+                                              *terminal_registry.unregister()*
 
 Remove a terminal from the registry. This is called automatically when the
 terminal buffer is deleted.
 
 Parameters:~
-  {id}  String. The ID of the terminal to unregister.
+  {id}  (string) The ID of the terminal to unregister.
 
 Example:~
->
-  call terminal_registry#unregister('bash')
-<
+>lua
+  local tr = require('terminal_registry')
+  tr.unregister('bash')
 
 ==============================================================================
 vim:tw=78:ts=8:ft=help:norl:

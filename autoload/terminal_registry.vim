@@ -25,23 +25,18 @@ function! terminal_registry#start(cmd, ...) abort
   let kill = get(opts, "kill", 1)
   let term_opts = get(opts, "terminal_options", {})
 
-  if has_key(s:registry, id)
-    if kill
-          \ && has_key(s:registry, id)
-          \ && has_key(s:registry[id], 'bufnr')
-          \ && bufexists(s:registry[id].bufnr)
+  if kill
+        \ && has_key(s:registry, id)
+        \ && has_key(s:registry[id], 'bufnr')
+        \ && bufexists(s:registry[id].bufnr)
       execute 'bdelete! ' . s:registry[id].bufnr
-    else
-      let s:registry[id] = s:open_to_register(a:cmd, id, term_opts)
-      if s:registry[id] == s:_FAIL
-        call remove(s:registry, id)
-        return
-      endif
-      return s:registry[id]
-    endif
   endif
 
-  let s:registry[id] = s:open_to_register(a:cmd, id, term_opts)
+  let result = s:open_to_register(a:cmd, id, term_opts)
+  if result == s:_FAIL
+    return
+  endif
+  let s:registry[id] = result
   return s:registry[id]
 endfunction
 
