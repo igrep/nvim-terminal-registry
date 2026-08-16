@@ -36,7 +36,7 @@ function M.start(cmd, opts)
   opts = opts or {}
   local id = opts.id or cmd
   local kill = opts.kill == nil or opts.kill
-  local term_opts = opts.terminal_options or {}
+  local term_opts = opts.terminal_options or vim.empty_dict()
   
   if kill
         and registry[id]
