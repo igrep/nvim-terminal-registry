@@ -33,7 +33,7 @@ function! terminal_registry#start(cmd, ...) abort
   endif
 
   let result = s:open_to_register(a:cmd, id, term_opts)
-  if result == s:_FAIL
+  if type(result) != v:t_dict
     return
   endif
   let s:registry[id] = result
