@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# Command line wrapper for the functions in terminal_registry
+
+set -euo pipefail
+
+this_script_dir="$(dirname "$(realpath "$0")")"
+plugin_dir=$(realpath "$this_script_dir/..")
+
+set +e
+expr="$(nvim -l "$this_script_dir"/get-expr.lua "$@")"
+$exit_code="$?"
+set -e
+
+if [ "$exit_code" -ne 0 ]; then
+  echo "$expr" >&2
+  exit "$exit_code"
+fi
+exec nvim --headless --server "$NVIM" --remote-expr "$expr"
