@@ -1,7 +1,6 @@
 local M = {}
 
 local registry = {}
-local _FAIL = -1
 
 local function open_to_register(cmd, id, term_opts)
   vim.cmd('enew')
@@ -14,8 +13,7 @@ local function open_to_register(cmd, id, term_opts)
   }
   
   if ref_to_term.jobid < 0 then
-    vim.api.nvim_err_writeln('Failed to start terminal for ' .. cmd)
-    return _FAIL
+    error('Failed to start terminal for ' .. cmd)
   end
   
   vim.opt_local.bufhidden = 'hide'
@@ -46,9 +44,6 @@ function M.start(cmd, opts)
   end
   
   local result = open_to_register(cmd, id, term_opts)
-  if result == _FAIL then
-    return
-  end
   registry[id] = result
   return registry[id]
 end
