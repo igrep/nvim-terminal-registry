@@ -73,6 +73,14 @@ function M.has_started(id)
   return registry[id] ~= nil
 end
 
+function M.kill(id)
+  if registry[id] then
+    vim.fn.jobstop(registry[id].jobid)
+    vim.cmd('bdelete! ' .. registry[id].bufnr)
+    registry[id] = nil
+  end
+end
+
 function M.unregister(id)
   if registry[id] then
     registry[id] = nil

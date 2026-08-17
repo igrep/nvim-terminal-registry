@@ -17,3 +17,7 @@ endfunction
 function! terminal_registry#has_started(id) abort
   return v:lua.require('terminal_registry').has_started(a:id)
 endfunction
+
+function! terminal_registry#kill(id) abort
+  return v:lua.require('terminal_registry').kill(a:id)
+endfunction
