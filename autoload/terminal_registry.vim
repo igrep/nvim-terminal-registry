@@ -1,5 +1,6 @@
-function! terminal_registry#start(cmd, opts) abort
-  return v:lua.require('terminal_registry').start(a:cmd, a:opts)
+function! terminal_registry#start(cmd, ...) abort
+  let opts = get(a:, 1, {})
+  return v:lua.require('terminal_registry').start(a:cmd, opts)
 endfunction
 
 function! terminal_registry#switch(id) abort
