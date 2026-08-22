@@ -21,8 +21,7 @@ CONTENTS                                          *terminal_registry-contents*
    2.7 require('terminal_registry').get_recent_output_lines()
                                   |terminal_registry.get_recent_output_lines()|
    2.8 require('terminal_registry').list() |terminal_registry.list()|
-   2.9 require('terminal_registry').dump() |terminal_registry.dump()|
-   2.10 require('terminal_registry').unregister()
+   2.9 require('terminal_registry').unregister()
                                          |terminal_registry.unregister()|
 
 ==============================================================================
@@ -217,17 +216,6 @@ Example:~
   for _, id in ipairs(terminals) do
     print('Terminal:', id)
   end
-<
-
-------------------------------------------------------------------------------
-2.9 require('terminal_registry').dump()          *terminal_registry.dump()*
-
-Display the entire registry for debugging purposes.
-
-Example:~
->lua
-  local tr = require('terminal_registry')
-  tr.dump()
 <
 
 ------------------------------------------------------------------------------

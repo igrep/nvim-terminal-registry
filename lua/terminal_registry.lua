@@ -103,7 +103,7 @@ function M.list()
   return keys
 end
 
-function M.dump()
+function M.__dump()
   print(vim.inspect(registry))
 end
 
