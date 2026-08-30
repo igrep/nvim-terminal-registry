@@ -4,31 +4,39 @@ This script generates the argument for the `--report-expr` option of the `nvim` 
 --]]
 
 local call
+local formatter
 if args[1] == "start" then
   local cmd = args[2]
   if not cmd then
     error("Missing command (first argument) for 'start'")
   end
   local opts = vim.json.decode(args[3] or "{}")
-  call = 'start(' .. vim.inspect(cmd) .. ', ' .. vim.inspect(opts) .. ')'
+  call = 'start(' .. vim.inspect(cmd) .. ', ' .. vim.inspect(opts, { newline = ' ', indent = '' }) .. ')'
+  formatter = "void"
 elseif args[1] == "list" then
   call = 'list()'
+  formatter = "inspect"
 elseif args[1] == "get_buf" then
   local id = args[2]
   if not id then
     error("Missing id (first argument) for 'get_buf'")
   end
   call = 'get_buf(' .. vim.inspect(id) .. ')'
+  formatter = "inspect"
 elseif args[1] == "get_recent_output_lines" then
   local id = args[2]
   if not id then
     error("Missing id (first argument) for 'get_recent_output_lines'")
   end
   if not args[3] then
-    error("Missing or invalid n (second argument) for 'get_recent_output_lines'")
+    error("Missing n (second argument) for 'get_recent_output_lines'")
   end
   local n = tonumber(args[3])
+  if not n then
+    error("Invalid n (second argument) for 'get_recent_output_lines': " .. vim.inspect(args[3]))
+  end
   call = 'get_recent_output_lines(' .. vim.inspect(id) .. ', ' .. n .. ')'
+  formatter = "lines"
 elseif args[1] == "send" then
   local id = args[2]
   local keys = args[3]
@@ -36,6 +44,7 @@ elseif args[1] == "send" then
     error("Missing id (first argument) or keys (second argument) for 'send'")
   end
   call = 'send(' .. vim.inspect(id) .. ', ' .. vim.inspect(keys) .. ')'
+  formatter = "void"
 elseif args[1] == "sendl" then
   local id = args[2]
   local keys = args[3]
@@ -43,15 +52,22 @@ elseif args[1] == "sendl" then
     error("Missing id (first argument) or keys (second argument) for 'sendl'")
   end
   call = 'sendl(' .. vim.inspect(id) .. ', ' .. vim.inspect(keys) .. ')'
+  formatter = "void"
 elseif args[1] == "kill" then
   local id = args[2]
   if not id then
     error("Missing id (first argument) for 'kill'")
   end
   call = 'kill(' .. vim.inspect(id) .. ')'
+  formatter = "void"
 else
   error("Unsupported subcommand: " .. vim.inspect(args[1]))
 end
 
-local exp = 'require("terminal_registry").' .. call
+local exp =
+  'require("terminal_registry").__format_'
+  .. formatter
+  .. '(require("terminal_registry").'
+  .. call
+  .. ")"
 print("luaeval(" .. vim.inspect(exp) .. ")")

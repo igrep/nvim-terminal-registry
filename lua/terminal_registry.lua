@@ -10,6 +10,7 @@ local function open_to_register(cmd, id, term_opts)
   local ref_to_term = {
     jobid = jobid,
     bufnr = bufnr,
+    cmd = cmd,
   }
   
   if ref_to_term.jobid < 0 then
@@ -91,16 +92,27 @@ function M.get_recent_output_lines(id, n)
     endN = endN - 1
   end
   
-  local lines = vim.fn.getbufline(bufnr, math.max(1, endN - n + 1), endN)
-  return table.concat(lines, "\n")
+  return vim.fn.getbufline(bufnr, math.max(1, endN - n + 1), endN)
 end
 
 function M.list()
   local keys = {}
-  for k in pairs(registry) do
-    table.insert(keys, k)
+  for k, v in pairs(registry) do
+    keys[k] = v.cmd
   end
   return keys
+end
+
+function M.__format_void(_)
+  return ''
+end
+
+function M.__format_lines(lines)
+  return table.concat(lines, "\n")
+end
+
+function M.__format_inspect(value)
+  return vim.inspect(value)
 end
 
 function M.__dump()
