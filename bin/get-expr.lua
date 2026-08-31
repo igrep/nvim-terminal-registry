@@ -3,6 +3,26 @@ local args = { unpack(_G.arg, 1) }
 This script generates the argument for the `--report-expr` option of the `nvim` command to call and print the result of the corresponding function in the autoload/terminal_registry.vim
 --]]
 
+if args[1] == "help" then
+  local help_text = [[
+cli subcommands:
+    start <cmd> [<opts_json>] - Start a new terminal with the given <cmd> and <opts_json>.
+    list - List all registered terminals.
+    get_buf <id> - Get the buffer number of the terminal with the given <id>.
+    get_recent_output_lines <id> <n> - Get the last <n> lines of output from the terminal with the given <id>.
+    send <id> <keys> - Send <keys> to the terminal with the given <id>.
+    sendl <id> <keys> - Send <keys> followed by a newline to the terminal with the given i<d.>
+    kill <id> - Kill the terminal with the given <id>.
+
+  Options for `start` subcommand:
+    id - The id to register the terminal under (default: the command itself).
+    kill - Whether to kill the terminal if it already exists (default: true).
+    terminal_options - A dictionary of options to pass to the termstart function in Neovim (default: {}).
+  ]]
+  print(vim.inspect(help_text))
+  os.exit(0)
+end
+
 local call
 local formatter
 if args[1] == "start" then
@@ -61,7 +81,7 @@ elseif args[1] == "kill" then
   call = 'kill(' .. vim.inspect(id) .. ')'
   formatter = "void"
 else
-  error("Unsupported subcommand: " .. vim.inspect(args[1]))
+  error("Unsupported subcommand: " .. vim.inspect(args[1]) .. "\nRun help subcommand for usage information.")
 end
 
 local exp =
