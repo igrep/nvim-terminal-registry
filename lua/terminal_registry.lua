@@ -31,11 +31,16 @@ local function open_to_register(cmd, id, term_opts)
   return ref_to_term
 end
 
+local this_plugin_dir = debug.getinfo(1, "S").source:match("@?(.*/)")
+
 function M.start(cmd, opts)
   opts = opts or {}
   local id = opts.id or cmd
   local kill = opts.kill == nil or opts.kill
   local term_opts = opts.terminal_options or vim.empty_dict()
+  term_opts.env = {
+    PATH = this_plugin_dir .. '/../bin:' .. (vim.env.PATH or '')
+  }
 
   if kill
         and registry[id]
