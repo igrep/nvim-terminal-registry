@@ -19,15 +19,24 @@ and `doc/terminal_registry.txt`). It lets you manage terminal buffers running
 inside a **currently open Neovim instance**, each identified by a string
 `id`.
 
-### Prerequisite: `$NVIM`
+### Prerequisites
 
-`terminal-registry` talks to a running Neovim instance via
-`nvim --server "$NVIM" --remote-expr`. This only works when invoked from a
-shell that has the `$NVIM` environment variable set — which Neovim sets
-automatically for `:terminal` buffers opened inside it. If `$NVIM` is unset
-or points to a stale server, the command will fail; ask the user to run it
-from a Neovim terminal, or to provide the correct server address (e.g. via
-`nvim --listen`).
+- **`$NVIM` must point to a running Neovim instance.** `terminal-registry`
+  talks to Neovim via `nvim --server "$NVIM" --remote-expr`. This only works
+  when invoked from a shell that has the `$NVIM` environment variable set —
+  which Neovim sets automatically for `:terminal` buffers opened inside it.
+  If `$NVIM` is unset or points to a stale server, the command will fail; ask
+  the user to run it from a Neovim terminal, or to provide the correct
+  server address (e.g. via `nvim --listen`).
+- **`terminal-registry` must be on `PATH`.** It is available only inside a
+  terminal that was started via the plugin's
+  `require("terminal_registry").start()` function, which sets up the `PATH`
+  environment variable for that terminal to include the plugin's `bin/`
+  directory. If you get a "command not found" error, this session isn't
+  running inside a terminal-registry-managed terminal; ask the user to start
+  one (e.g. `:lua require("terminal_registry").start("your_ai_agent", {id =
+  "AI"})` in Neovim), or fall back to invoking the script directly by its
+  full path (e.g. under the plugin's `bin/` directory).
 
 ### CLI usage
 
@@ -86,14 +95,3 @@ terminal-registry sendl py-repl "print(1 + 1)"
 # Stop it
 terminal-registry kill py-repl
 ```
-
-### Caveat
-
-The `terminal-registry` command is available only when you have started via
-the plugin's `require("terminal_registry").start()` function, which sets up
-the `PATH` environment variable to include the plugin's `bin/` directory. If
-you get "command not found", this session isn't running inside a
-terminal-registry-managed terminal. Ask the user to start one via
-`:lua require("terminal_registry").start("your_ai_agent", {id="AI"})` in
-Neovim, or fall back to invoking the script directly by its full path (e.g.
-under the plugin's  bin/  directory).
