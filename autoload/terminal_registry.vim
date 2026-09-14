@@ -22,3 +22,7 @@ endfunction
 function! terminal_registry#kill(id) abort
   return v:lua.require('terminal_registry').kill(a:id)
 endfunction
+
+function! terminal_registry#install_skill(target_dir) abort
+  return v:lua.require('terminal_registry').install_skill(a:target_dir)
+endfunction

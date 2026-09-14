@@ -108,6 +108,12 @@ function M.list()
   return keys
 end
 
+function M.install_skill(target_dir)
+  local skill_dir = this_plugin_dir .. '/.agents/skills/terminal_registry'
+  vim.fn.mkdir(target_dir, 'p')
+  vim.fn.copy(skill_dir, target_dir)
+end
+
 function M.__format_void(_)
   return ''
 end
