@@ -1,19 +1,117 @@
-#!/usr/bin/env bash
+#!/usr/bin/env -S nvim -l
+-- vim: ft=lua :
 
-# Command line wrapper for the functions in terminal_registry
+-- Command line wrapper for the functions in terminal_registry
+local args = { unpack(_G.arg, 1) }
 
-set -euo pipefail
+if args[1] == "help" then
+  local help_text = [[
+terminal-registry cli subcommands:
+    start <cmd> [<opts_json>] - Start a new terminal with the given <cmd> and <opts_json>.
+    list - List all registered terminals.
+    get_buf <id> - Get the buffer number of the terminal with the given <id>.
+    get_recent_output_lines <id> <n> - Get the last <n> lines of output from the terminal with the given <id>.
+    send <id> <keys> - Send <keys> to the terminal with the given <id>.
+    sendl <id> <keys> - Send <keys> followed by a newline to the terminal with the given i<d.>
+    kill <id> - Kill the terminal with the given <id>.
 
-this_script_dir="$(dirname "$(realpath "$0")")"
-plugin_dir=$(realpath "$this_script_dir/..")
+  Options for `start` subcommand:
+    id - The id to register the terminal under (default: the command itself).
+    kill - Whether to kill the terminal if it already exists (default: true).
+    terminal_options - A dictionary of options to pass to the termstart function in Neovim (default: {}).
+  ]]
+  print(help_text)
+  os.exit(0)
+end
 
-set +e
-expression="$(nvim -l "$this_script_dir"/get-expr.lua "$@" 2>&1)"
-exit_code="$?"
-if [ "$exit_code" -ne 0 ]; then
-  echo "$expression" >&2
-  exit "$exit_code"
-fi
-set -e
+local call
+local formatter
+if args[1] == "start" then
+  local cmd = args[2]
+  if not cmd then
+    error("Missing command (first argument) for 'start'")
+  end
+  local opts = vim.json.decode(args[3] or "{}")
+  call = 'start(' .. vim.inspect(cmd) .. ', ' .. vim.inspect(opts, { newline = ' ', indent = '' }) .. ')'
+  formatter = "void"
+elseif args[1] == "list" then
+  call = 'list()'
+  formatter = "inspect"
+elseif args[1] == "get_buf" then
+  local id = args[2]
+  if not id then
+    error("Missing id (first argument) for 'get_buf'")
+  end
+  call = 'get_buf(' .. vim.inspect(id) .. ')'
+  formatter = "inspect"
+elseif args[1] == "get_recent_output_lines" then
+  local id = args[2]
+  if not id then
+    error("Missing id (first argument) for 'get_recent_output_lines'")
+  end
+  if not args[3] then
+    error("Missing n (second argument) for 'get_recent_output_lines'")
+  end
+  local n = tonumber(args[3])
+  if not n then
+    error("Invalid n (second argument) for 'get_recent_output_lines': " .. vim.inspect(args[3]))
+  end
+  call = 'get_recent_output_lines(' .. vim.inspect(id) .. ', ' .. n .. ')'
+  formatter = "lines"
+elseif args[1] == "send" then
+  local id = args[2]
+  local keys = args[3]
+  if not id or not keys then
+    error("Missing id (first argument) or keys (second argument) for 'send'")
+  end
+  call = 'send(' .. vim.inspect(id) .. ', ' .. vim.inspect(keys) .. ')'
+  formatter = "void"
+elseif args[1] == "sendl" then
+  local id = args[2]
+  local keys = args[3]
+  if not id or not keys then
+    error("Missing id (first argument) or keys (second argument) for 'sendl'")
+  end
+  call = 'sendl(' .. vim.inspect(id) .. ', ' .. vim.inspect(keys) .. ')'
+  formatter = "void"
+elseif args[1] == "kill" then
+  local id = args[2]
+  if not id then
+    error("Missing id (first argument) for 'kill'")
+  end
+  call = 'kill(' .. vim.inspect(id) .. ')'
+  formatter = "void"
+else
+  error("Unsupported subcommand: " .. vim.inspect(args[1]) .. "\nRun help subcommand for usage information.")
+end
 
-exec nvim --headless --server "$NVIM" --remote-expr "$expression"
+local lua_exp =
+  'require("terminal_registry").__format_'
+  .. formatter
+  .. '(require("terminal_registry").'
+  .. call
+  .. ")"
+
+vim.system(
+  {
+    "nvim",
+    "--headless",
+    "--server",
+    os.getenv("NVIM"),
+    "--remote-expr",
+    "luaeval(" .. vim.inspect(lua_exp) .. ")",
+  },
+  {
+    text = true,
+    stdout = function(_err, data)
+      if data then
+        io.stdout:write(data)
+      end
+    end,
+    stderr = function(_err, data)
+      if data then
+        io.stderr:write(data)
+      end
+    end,
+  }
+):wait()
