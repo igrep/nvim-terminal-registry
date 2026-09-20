@@ -8,7 +8,7 @@ description: |
   when the user says things like "run this in a terminal", "check the logs of
   the X terminal", "restart the Y process", or "send this command to the
   running terminal".
-license: MIT
+license: Apache-2.0
 ---
 
 ## Instructions
