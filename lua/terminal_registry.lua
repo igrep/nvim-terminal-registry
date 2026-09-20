@@ -109,9 +109,10 @@ function M.list()
 end
 
 function M.install_skill(target_dir)
-  local skill_dir = this_plugin_dir .. '/.agents/skills/terminal_registry'
+  local skill_dir = this_plugin_dir .. '/.agents/skills/terminal-registry/SKILL.md'
+  local target_dir = target_dir .. '/terminal-registry'
   vim.fn.mkdir(target_dir, 'p')
-  vim.fn.copy(skill_dir, target_dir)
+  vim.fn.filecopy(skill_dir, target_dir)
 end
 
 function M.__format_void(_)
