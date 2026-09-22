@@ -1,11 +1,11 @@
 -- Set a wide enough terminal width to avoid line wrapping in the output of commands
-vim.o.columns = 150
+vim.o.columns = 300
 
 local tr = require("terminal_registry")
 
 tr.start("PS1=test-runner: bash --norc --noprofile", { id = "test-runner" })
 tr.sendl("test-runner", "terminal-registry start 'PS1=bash-1: bash --norc --noprofile' '{ \"id\": \"bash-1\" }'")
-tr.sendl("test-runner", "terminal-registry start 'PS1=bash-2: bash --norc --noprofile' '{ \"id\": \"bash-2\", \"terminal_options\": { \"cwd\": \"/\" } }'")
+tr.sendl("test-runner", "terminal-registry start 'PS1=bash-2: bash --norc --noprofile' '{ \"id\": \"bash-2\", \"append_hash_id\": false, \"terminal_options\": { \"cwd\": \"/\" } }'")
 
 vim.wait(
   1000,
@@ -49,17 +49,17 @@ tr.sendl("test-runner", "terminal-registry get_recent_output_lines 'bash-1' 2")
 -- expected_lines_count can vary depending on the command executed
 local _, result_all = wait_for_output("test-runner", 17, 0)
 vim.fn.assert_equal(result_all[1], "terminal-registry start 'PS1=bash-1: bash --norc --noprofile' '{ \"id\": \"bash-1\" }'")
-vim.fn.assert_equal(result_all[2], "terminal-registry start 'PS1=bash-2: bash --norc --noprofile' '{ \"id\": \"bash-2\", \"terminal_options\": { \"cwd\": \"/\" } }'")
+vim.fn.assert_equal(result_all[2], "terminal-registry start 'PS1=bash-2: bash --norc --noprofile' '{ \"id\": \"bash-2\", \"append_hash_id\": false, \"terminal_options\": { \"cwd\": \"/\" } }'")
 vim.fn.assert_equal(result_all[3], "test-runner:terminal-registry start 'PS1=bash-1: bash --norc --noprofile' '{ \"id\": \"bash-1\" }'")
-vim.fn.assert_equal(result_all[4], "test-runner:terminal-registry start 'PS1=bash-2: bash --norc --noprofile' '{ \"id\": \"bash-2\", \"terminal_options\": { \"cwd\": \"/\" } }'")
+vim.fn.assert_equal(result_all[4], "test-runner:terminal-registry start 'PS1=bash-2: bash --norc --noprofile' '{ \"id\": \"bash-2\", \"append_hash_id\": false, \"terminal_options\": { \"cwd\": \"/\" } }'")
 vim.fn.assert_equal(result_all[5], "terminal-registry list")
 vim.fn.assert_equal(result_all[6], "terminal-registry sendl 'bash-1' 'echo hello'")
 vim.fn.assert_equal(result_all[7], "terminal-registry sendl 'bash-2' 'pwd'")
 vim.fn.assert_equal(result_all[8], "test-runner:terminal-registry list")
 vim.fn.assert_equal(result_all[9], "{")
-vim.fn.assert_equal(result_all[10], '  ["bash-1"] = "PS1=bash-1: bash --norc --noprofile",')
+vim.fn.assert_equal(result_all[10], '  ["bash-1"] = "PS1=bash-1: bash --norc --noprofile #bash-1",')
 vim.fn.assert_equal(result_all[11], '  ["bash-2"] = "PS1=bash-2: bash --norc --noprofile",')
-vim.fn.assert_equal(result_all[12], '  ["test-runner"] = "PS1=test-runner: bash --norc --noprofile"')
+vim.fn.assert_equal(result_all[12], '  ["test-runner"] = "PS1=test-runner: bash --norc --noprofile #test-runner"')
 vim.fn.assert_equal(result_all[13], "}test-runner:terminal-registry sendl 'bash-1' 'echo hello'")
 vim.fn.assert_equal(result_all[14], "test-runner:terminal-registry sendl 'bash-2' 'pwd'")
 vim.fn.assert_equal(result_all[15], "test-runner:terminal-registry get_recent_output_lines 'bash-1' 2")
