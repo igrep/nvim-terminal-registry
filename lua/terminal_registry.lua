@@ -32,11 +32,18 @@ local function open_to_register(cmd, id, term_opts)
 end
 
 local this_plugin_dir = debug.getinfo(1, "S").source:match("@?(.*/)")
+local has_win32 = vim.fn.has('win32') == 1
 
 function M.start(cmd, opts)
   opts = opts or {}
   local id = opts.id or cmd
   local kill = opts.kill == nil or opts.kill
+  local append_hash_id =
+    opts.append_hash_id == nil
+      and not (has_win32 and vim.o.shell == 'cmd.exe')
+      or opts.append_hash_id
+  local cmd =
+    append_hash_id and opts.id and cmd .. ' #' .. id or cmd
   local term_opts = opts.terminal_options or vim.empty_dict()
   term_opts.env = {
     PATH = this_plugin_dir .. '/../bin:' .. (vim.env.PATH or '')
